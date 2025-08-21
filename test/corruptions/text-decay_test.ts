@@ -2,10 +2,10 @@ import {
   assertEquals,
   assertNotEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { degrade } from "../degrade.ts";
+import { degrade } from "../../src/degrade.ts";
 
 const ORIGINAL = await Deno.readTextFile(
-  new URL("../README.original.md", import.meta.url),
+  new URL("../../src/README.original.md", import.meta.url),
 );
 
 // Text decay is the first corruption stage, active from ~2% progress onward.

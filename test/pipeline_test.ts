@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { registerCorruption, runPipeline } from "./pipeline.ts";
+import { registerCorruption, runPipeline } from "../src/pipeline.ts";
 
 // Use a fresh pipeline for isolated tests by importing the module,
 // but note the global pipeline already has corruptions registered from other imports.

@@ -2,10 +2,10 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { degrade } from "../degrade.ts";
+import { degrade } from "../../src/degrade.ts";
 
 const ORIGINAL = await Deno.readTextFile(
-  new URL("../README.original.md", import.meta.url),
+  new URL("../../src/README.original.md", import.meta.url),
 );
 
 Deno.test("fading: no fading effects below 20% progress", () => {

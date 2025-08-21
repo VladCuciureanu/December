@@ -4,10 +4,10 @@ import {
   assertStringIncludes,
   assertMatch,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { degrade, getProgress } from "./degrade.ts";
+import { degrade, getProgress } from "../src/degrade.ts";
 
 const ORIGINAL = await Deno.readTextFile(
-  new URL("./README.original.md", import.meta.url),
+  new URL("../src/README.original.md", import.meta.url),
 );
 
 // --- getProgress ---

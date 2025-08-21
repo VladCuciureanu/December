@@ -5,6 +5,13 @@
  * and returns a corrupted version at the appropriate decay level.
  */
 
+// --- Import corruption modules (order matters) ---
+import "./corruptions/text-decay.ts";
+import "./corruptions/fading.ts";
+import "./corruptions/link-rot.ts";
+import "./corruptions/structural-decay.ts";
+import "./corruptions/late-stage-entropy.ts";
+
 // --- Seeded RNG (Mulberry32) ---
 
 function mulberry32(seed: number): () => number {
@@ -63,14 +70,60 @@ export function degrade(
   return { readme: text, commitMessage };
 }
 
-function buildCommitMessage(
-  _day: number,
-  _totalDays: number,
-  _progress: number,
-  _rng: () => number,
+const BASE_COMMIT_MESSAGE = "apply daily degradation";
+
+function corruptCommitMessage(
+  message: string,
+  progress: number,
+  rng: () => number,
 ): string {
-  // Placeholder — will be implemented in task 8
-  return `update(${_day}/${_totalDays}): apply daily degradation`;
+  if (progress < 0.1) return message;
+
+  const chars = [...message];
+  const result: string[] = [];
+
+  for (const char of chars) {
+    // Character dropping
+    if (progress > 0.3 && char.match(/[a-zA-Z]/) && rng() < (progress - 0.3) * 0.15) {
+      continue;
+    }
+
+    // Character substitution with nearby keys or similar chars
+    if (char.match(/[a-zA-Z]/) && rng() < progress * 0.12) {
+      const code = char.charCodeAt(0);
+      const offset = rng() < 0.5 ? 1 : -1;
+      result.push(String.fromCharCode(code + offset));
+      continue;
+    }
+
+    // Space corruption
+    if (char === " " && progress > 0.5 && rng() < (progress - 0.5) * 0.3) {
+      continue; // drop space
+    }
+
+    result.push(char);
+  }
+
+  // At very high progress, replace chunks with blocks
+  let final = result.join("");
+  if (progress > 0.8) {
+    const finalChars = [...final];
+    final = finalChars
+      .map((ch) => (ch !== " " && rng() < (progress - 0.8) * 2 ? "█" : ch))
+      .join("");
+  }
+
+  return final;
+}
+
+function buildCommitMessage(
+  day: number,
+  totalDays: number,
+  progress: number,
+  rng: () => number,
+): string {
+  const message = corruptCommitMessage(BASE_COMMIT_MESSAGE, progress, rng);
+  return `update(${day}/${totalDays}): ${message}`;
 }
 
 // --- CLI entrypoint ---

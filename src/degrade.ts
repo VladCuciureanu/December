@@ -56,7 +56,7 @@ export function degrade(
   return { readme: text, commitMessage };
 }
 
-const BASE_COMMIT_MESSAGE = "apply daily degradation";
+const BASE_COMMIT_MESSAGE = "Apply daily degradation";
 
 function corruptCommitMessage(
   message: string,

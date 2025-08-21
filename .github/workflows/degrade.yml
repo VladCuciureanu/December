@@ -1,0 +1,61 @@
+name: Degrade README
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Daily at midnight UTC
+  workflow_dispatch: # Allow manual triggers
+
+permissions:
+  contents: write
+
+jobs:
+  degrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Check if reset day (Dec 31)
+        id: check-reset
+        run: |
+          if [ "$(date -u +%m-%d)" = "12-31" ]; then
+            echo "is_reset=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_reset=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Reset README
+        if: steps.check-reset.outputs.is_reset == 'true'
+        run: cp src/README.original.md README.md
+
+      - name: Degrade README
+        if: steps.check-reset.outputs.is_reset != 'true'
+        id: degrade
+        run: |
+          COMMIT_MSG=$(deno run --allow-read --allow-write src/degrade.ts)
+          echo "commit_message=$COMMIT_MSG" >> "$GITHUB_OUTPUT"
+
+      - name: Commit reset
+        if: steps.check-reset.outputs.is_reset == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet && exit 0
+          git commit -m "update(365/365): Reset. See you next year."
+          git push
+
+      - name: Commit degradation
+        if: steps.check-reset.outputs.is_reset != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet && exit 0
+          git commit -m "${{ steps.degrade.outputs.commit_message }}"
+          git push

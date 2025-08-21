@@ -4,7 +4,7 @@
  * Active from ~65% progress onward. The title ("# December") is the last to go.
  */
 
-import { registerCorruption } from "../degrade.ts";
+import { registerCorruption } from "../pipeline.ts";
 
 const FULL_BLOCK = "█";
 

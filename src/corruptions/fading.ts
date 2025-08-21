@@ -4,7 +4,7 @@
  * Active from ~20% progress onward.
  */
 
-import { registerCorruption } from "../degrade.ts";
+import { registerCorruption } from "../pipeline.ts";
 
 const BLOCK_CHARS_BY_SEVERITY = ["░", "▒", "▓"];
 

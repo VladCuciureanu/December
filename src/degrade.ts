@@ -5,12 +5,14 @@
  * and returns a corrupted version at the appropriate decay level.
  */
 
-// --- Import corruption modules (order matters) ---
+// Import corruption modules (order matters — registers into the pipeline)
 import "./corruptions/text-decay.ts";
 import "./corruptions/fading.ts";
 import "./corruptions/link-rot.ts";
 import "./corruptions/structural-decay.ts";
 import "./corruptions/late-stage-entropy.ts";
+
+import { runPipeline } from "./pipeline.ts";
 
 // --- Seeded RNG (Mulberry32) ---
 
@@ -27,20 +29,6 @@ function mulberry32(seed: number): () => number {
 export interface DegradeResult {
   readme: string;
   commitMessage: string;
-}
-
-export type CorruptionFn = (
-  text: string,
-  progress: number,
-  rng: () => number,
-) => string;
-
-// Registry of corruption functions, applied in order.
-// Each module will push its functions here.
-const corruptionPipeline: { phase: string; fn: CorruptionFn }[] = [];
-
-export function registerCorruption(phase: string, fn: CorruptionFn): void {
-  corruptionPipeline.push({ phase, fn });
 }
 
 export function getProgress(day: number, totalDays: number): number {
@@ -61,9 +49,7 @@ export function degrade(
     .replace(/\{total\}/g, String(totalDays));
 
   // Apply corruption pipeline
-  for (const { fn } of corruptionPipeline) {
-    text = fn(text, progress, rng);
-  }
+  text = runPipeline(text, progress, rng);
 
   const commitMessage = buildCommitMessage(day, totalDays, progress, rng);
 

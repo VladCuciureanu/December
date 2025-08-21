@@ -5,7 +5,7 @@
  * Active from 0% progress onward (subtle at first).
  */
 
-import { registerCorruption } from "../degrade.ts";
+import { registerCorruption } from "../pipeline.ts";
 
 // Latin → visually similar Unicode characters
 const HOMOGLYPHS: Record<string, string[]> = {

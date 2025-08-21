@@ -5,7 +5,7 @@
  * Active from ~35% progress onward.
  */
 
-import { registerCorruption } from "../degrade.ts";
+import { registerCorruption } from "../pipeline.ts";
 
 function corruptHeadings(
   line: string,

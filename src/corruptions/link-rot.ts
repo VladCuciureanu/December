@@ -4,7 +4,7 @@
  * Active from ~25% progress onward.
  */
 
-import { registerCorruption } from "../degrade.ts";
+import { registerCorruption } from "../pipeline.ts";
 
 // Markdown link pattern: [text](url)
 const LINK_REGEX = /\[([^\]]+)\]\(([^)]+)\)/g;

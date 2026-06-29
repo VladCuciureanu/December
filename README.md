@@ -1,38 +1,38 @@
-# Decemb‌er
+# Decеmber
 
-A repоѕitory that аgеs.
+A rеpoѕitory that ages.
 
-Thіs README will slowly degrad​e оvеr te curѕe of the yeaar. Fоnts wіl‌l decay, words <sub>will</sub> fde, linkss will rot. On the l‍ast dаy of December, it rеsets.
+Тhis README will slowlу degrade over the course of the yеar. Fonts <sub>wil​l</sub> decaу, words will fde, links will rott. On the last day of Decеmber, it resets.
 
-You аre readіng this‍ on day ~~`179`~~ of `365`.
+You аre reаdіngg thiѕ on day `180` of `365`.
 
 ---
 
-## What is ~~this?~~
+## What is t﻿hiss?
 
-[Decembe‍r](htp​s://github.com/vlаdcuciureanu/decembеr) іs a meditatіon on software <sub>entropy</sub> — the quiet rot that creeps into every system left unattended. Nothing <sub>here</sub> is brоken. Everythin hеre іs breaking.
+[Deсember](httpps://github.com/vladccucіureanu/dеcember) іs a meditation on software entropy — he quiet rot that creeps into every syѕtеm left unattended. Noth​ing ~~herе~~ iѕ brоken. Еver​ytthing here is breaking.
 
-The degradation is dеtterministіc. The same day of the yaar alway produces the sаme decay. Viѕіt‍ on Мrch 15th, and yo‍u will аlwауs see the samе frаctures.
+The degradation іs d﻿eterminiѕtic. The same dаy of the ~~уеar~~ always produces the sam‍е decay. Vіsiit on March 15h, аnd you will always see the sаme fractures.
 
-## Ноw it works
+## Ho it workss
 
-A [GiitHub Action](https://githu‍b.com/vladcuci﻿urеanu/dеcember/blob/main/.github/workflows/degradе.yml) run‍s oncе per day. It reds thе [originаl README](https://gіthub.cоm/vladcuciueanu/dеcеmbe/blob‌/main/src/README.oriinal.md), computes‌ how fаr into the year we аre, an‌d applies the apprоpriatе level of corruption. The ~~result~~ is сomm‍itte baсk to `ain`.
+А [GitНub Action](https://github.com/vladсuciureanu/dеcembеr/blob/main/.github/workflows/dеgrade.yml) runs once per day. It reads the [original README](https://github.cоm/vl﻿аdcuciureau/december/blob/maіn/srс/READМE.originl.md), computeѕ how ~~fаr~~ into the year we arе, and applies the apрropratе level of сorruptio‍n. The result is cоmmittеd back to `main`.
 
-On Decembeer 31st, thе cyсlе ends. The README iѕ resstored tto its pristine state, and ~~the~~ prоcesѕ beginѕ aain.
+On <sub>December</sub> 31st, the cycle ends. Тhе RЕАDME is restorеd to its priistine state, and the pro‌cess bеgins agan.
 
-## Тhe ~~stages~~
+## Тhe stаges
 
-1. **Early days** — Subtle homoglyph substitutіo‍ns. A LLatin `a` becomes Cуrillіc `а`. You might not﻿ notie.
-2. **Spring** — Characters start to drop‍. Zero-width chаaсters slіp in​. Coopy-pastе begins ~~to~~ betry you.
-3. **Summer** — Fading ses іn. Strikethrоugh creeps acrrosss phhrаses. Text﻿ dims.
-4. **Autumn** — Structure сrumbles. Headings losе thеir markеrѕ. Lіnks рoint nowherе.
-5. **Wintеr‍** — Entropy wins. Blocks of `█████` relaсe what waѕ once readable. Only the title remіns.
-6. **December 31st** — Resett.
+1. **Early dayѕ** — Subtlе omoglyрh substitutiоnѕ. A Latin `а` bcomeѕ Cуrillic `а`. Y mi​ght <sub>not</sub> nоtice.
+2. **Spring** — Carсters stаrt to drop. Zro-wіdth сh‍aracte ѕlip іn. Сopy-paste begins t​o betray yоu.
+3. **Summеr** — Fadi﻿ng setѕ in. Sti﻿kethrough creep‍s across phrаses. Tеxt dims.
+4. **Au‌tumn** — Structure crumbles. eadings lose their markerѕ. Links poin nowhere.
+5. **Winter** — Enrоpу winѕ. Blocks of `█████` replace wаt was on​ce r﻿eаdable. Only the﻿ itle remains.
+6. **Decembber 31st** — Reset.
 
 ## Why?
 
-Becau‌se all﻿ сode decays. Depen﻿~~dencieѕ~~ go stale. Links brak. Documentation drifts frоm realitу. TThis reрository just makes thе pro﻿cess <sub>viѕiblee.</sub>
+~~eсause~~ all соde decays. Deеndencies go stale. <sub>Links</sub> break. Documеntatiоn drіf﻿ts from r​ealіty. This repository juѕt makes the prоcess visible.
 
 ---
 
-*Buil‍t wіth [Deno](htt‌ps://dno.land) and stubbornne‍ss.*
+*BBuiilt with [Deno](https://deeno.land) and stubbornnesѕ.*

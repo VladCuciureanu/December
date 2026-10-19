@@ -3,10 +3,13 @@
  * and prints the output for manual review.
  */
 
+import { readFile } from "node:fs/promises";
+
 import { degrade } from "./degrade.ts";
 
-const original = await Deno.readTextFile(
+const original = await readFile(
   new URL("./README.original.md", import.meta.url),
+  "utf8",
 );
 
 const testDays = [1, 30, 90, 180, 270, 330, 355, 364, 365];

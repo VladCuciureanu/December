@@ -12,6 +12,11 @@ import "./corruptions/link-rot.ts";
 import "./corruptions/structural-decay.ts";
 import "./corruptions/late-stage-entropy.ts";
 
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
 import { runPipeline } from "./pipeline.ts";
 
 // --- Seeded RNG (Mulberry32) ---
@@ -114,9 +119,9 @@ function buildCommitMessage(
 
 // --- CLI entrypoint ---
 
-if (import.meta.main) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const originalPath = new URL("./README.original.md", import.meta.url);
-  const original = await Deno.readTextFile(originalPath);
+  const original = await readFile(originalPath, "utf8");
 
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -132,7 +137,7 @@ if (import.meta.main) {
   const result = degrade(original, day, totalDays);
 
   const outPath = new URL("../README.md", import.meta.url);
-  await Deno.writeTextFile(outPath, result.readme);
+  await writeFile(outPath, result.readme);
 
   // Output commit message to stdout for the CI action to capture
   console.log(result.commitMessage);

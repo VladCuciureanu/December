@@ -40,6 +40,32 @@ export function getProgress(day: number, totalDays: number): number {
   return Math.max(0, Math.min(1, (day - 1) / (totalDays - 1)));
 }
 
+/** Replace the {day} and {total} template placeholders. */
+export function fillPlaceholders(
+  text: string,
+  day: number,
+  totalDays: number,
+): string {
+  return text
+    .replace(/\{day\}/g, String(day))
+    .replace(/\{total\}/g, String(totalDays));
+}
+
+/**
+ * Dec 31 reset: the pristine README with placeholders filled in and no
+ * corruption applied.
+ */
+export function reset(
+  original: string,
+  day: number,
+  totalDays: number,
+): DegradeResult {
+  return {
+    readme: fillPlaceholders(original, day, totalDays),
+    commitMessage: `update(${day}/${totalDays}): Reset. See you next year.`,
+  };
+}
+
 export function degrade(
   original: string,
   day: number,
@@ -48,10 +74,7 @@ export function degrade(
   const progress = getProgress(day, totalDays);
   const rng = mulberry32(day);
 
-  // Replace {day} and {total} placeholders
-  let text = original
-    .replace(/\{day\}/g, String(day))
-    .replace(/\{total\}/g, String(totalDays));
+  let text = fillPlaceholders(original, day, totalDays);
 
   // Apply corruption pipeline
   text = runPipeline(text, progress, rng);
@@ -134,7 +157,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
   const totalDays = isLeapYear ? 366 : 365;
 
-  const result = degrade(original, day, totalDays);
+  // The workflow passes --reset on Dec 31 to restore the pristine README
+  const result = process.argv.includes("--reset")
+    ? reset(original, day, totalDays)
+    : degrade(original, day, totalDays);
 
   const outPath = new URL("../README.md", import.meta.url);
   await writeFile(outPath, result.readme);

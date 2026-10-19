@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { degrade, getProgress } from "../src/degrade.ts";
+import { degrade, getProgress, reset } from "../src/degrade.ts";
 
 const ORIGINAL = await readFile(
   new URL("../src/README.original.md", import.meta.url),
@@ -160,4 +160,22 @@ test("degrade handles 366-day leap year", () => {
   const result = degrade(ORIGINAL, 366, 366);
   assert.strictEqual(typeof result.readme, "string");
   assert.strictEqual(result.readme.length > 0, true);
+});
+
+// --- reset: Dec 31 ---
+
+test("Dec 31 reset fills placeholders with no corruption", () => {
+  const result = reset(ORIGINAL, 365, 365);
+  assert.doesNotMatch(result.readme, /\{[a-z]+\}/);
+  assert.ok(result.readme.includes("day `365` of `365`"));
+  const filled = ORIGINAL.replace(/\{day\}/g, "365").replace(/\{total\}/g, "365");
+  assert.strictEqual(result.readme, filled);
+  assert.strictEqual(result.commitMessage, "update(365/365): Reset. See you next year.");
+});
+
+test("Dec 31 reset in a leap year uses day 366", () => {
+  const result = reset(ORIGINAL, 366, 366);
+  assert.doesNotMatch(result.readme, /\{[a-z]+\}/);
+  assert.ok(result.readme.includes("day `366` of `366`"));
+  assert.strictEqual(result.commitMessage, "update(366/366): Reset. See you next year.");
 });

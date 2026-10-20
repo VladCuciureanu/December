@@ -4,11 +4,9 @@
  * Active from ~65% progress onward. The title ("# December") is the last to go.
  */
 
-import { registerCorruption } from "../pipeline.ts";
-
 const FULL_BLOCK = "█";
 
-function corruptLateStageEntropy(
+export function lateStageEntropy(
   text: string,
   progress: number,
   rng: () => number,
@@ -86,5 +84,3 @@ function corruptLateStageEntropy(
 
   return result.join("\n");
 }
-
-registerCorruption("late-stage-entropy", corruptLateStageEntropy);

@@ -5,8 +5,6 @@
  * Active from 0% progress onward (subtle at first).
  */
 
-import { registerCorruption } from "../pipeline.ts";
-
 // Latin → visually similar Unicode characters
 const HOMOGLYPHS: Record<string, string[]> = {
   a: ["\u0430"], // Cyrillic а
@@ -66,7 +64,7 @@ function isMarkdownSyntax(char: string, prev: string, next: string): boolean {
   );
 }
 
-function corruptTextDecay(
+export function textDecay(
   text: string,
   progress: number,
   rng: () => number,
@@ -137,5 +135,3 @@ function corruptTextDecay(
 
   return result.join("\n");
 }
-
-registerCorruption("text-decay", corruptTextDecay);

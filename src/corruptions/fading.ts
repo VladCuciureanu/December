@@ -4,8 +4,6 @@
  * Active from ~20% progress onward.
  */
 
-import { registerCorruption } from "../pipeline.ts";
-
 const BLOCK_CHARS_BY_SEVERITY = ["░", "▒", "▓"];
 
 function selectBlockChar(progress: number, rng: () => number): string {
@@ -17,7 +15,7 @@ function selectBlockChar(progress: number, rng: () => number): string {
   return BLOCK_CHARS_BY_SEVERITY[0];
 }
 
-function corruptFading(
+export function fading(
   text: string,
   progress: number,
   rng: () => number,
@@ -90,5 +88,3 @@ function corruptFading(
 
   return result.join("\n");
 }
-
-registerCorruption("fading", corruptFading);

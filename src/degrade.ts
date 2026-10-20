@@ -5,19 +5,29 @@
  * and returns a corrupted version at the appropriate decay level.
  */
 
-// Import corruption modules (order matters — registers into the pipeline)
-import "./corruptions/text-decay.ts";
-import "./corruptions/fading.ts";
-import "./corruptions/link-rot.ts";
-import "./corruptions/structural-decay.ts";
-import "./corruptions/late-stage-entropy.ts";
-
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { runPipeline } from "./pipeline.ts";
+import { fading } from "./corruptions/fading.ts";
+import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
+import { linkRot } from "./corruptions/link-rot.ts";
+import { structuralDecay } from "./corruptions/structural-decay.ts";
+import { textDecay } from "./corruptions/text-decay.ts";
+import { type CorruptionFn, runPipeline } from "./pipeline.ts";
+
+/**
+ * Corruption stages, applied in this order. They share one seeded rng, so
+ * reordering them changes every day's output.
+ */
+export const PIPELINE: readonly CorruptionFn[] = [
+  textDecay,
+  fading,
+  linkRot,
+  structuralDecay,
+  lateStageEntropy,
+];
 
 // --- Seeded RNG (Mulberry32) ---
 
@@ -77,7 +87,7 @@ export function degrade(
   let text = fillPlaceholders(original, day, totalDays);
 
   // Apply corruption pipeline
-  text = runPipeline(text, progress, rng);
+  text = runPipeline(PIPELINE, text, progress, rng);
 
   const commitMessage = buildCommitMessage(day, totalDays, progress, rng);
 

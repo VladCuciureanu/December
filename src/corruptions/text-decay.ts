@@ -45,7 +45,7 @@ const UNICODE_SPACES = [
   "\u200A", // hair space
 ];
 
-function isMarkdownSyntax(char: string, prev: string, next: string): boolean {
+function isMarkdownSyntax(char: string): boolean {
   // Avoid corrupting markdown syntax characters
   return (
     char === "#" ||
@@ -83,14 +83,9 @@ export function textDecay(
     }
 
     let newLine = "";
-    const chars = [...line]; // handle unicode properly
 
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars[i];
-      const prev = i > 0 ? chars[i - 1] : "";
-      const next = i < chars.length - 1 ? chars[i + 1] : "";
-
-      if (isMarkdownSyntax(char, prev, next)) {
+    for (const char of line) { // iterates code points, not UTF-16 units
+      if (isMarkdownSyntax(char)) {
         newLine += char;
         continue;
       }

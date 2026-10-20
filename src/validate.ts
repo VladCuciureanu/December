@@ -5,7 +5,7 @@
 
 import { readFile } from "node:fs/promises";
 
-import { degrade } from "./degrade.ts";
+import { degrade, getProgress } from "./degrade.ts";
 
 const original = await readFile(
   new URL("./README.original.md", import.meta.url),
@@ -17,7 +17,7 @@ const totalDays = 365;
 
 for (const day of testDays) {
   const result = degrade(original, day, totalDays);
-  const progress = ((day - 1) / (totalDays - 1) * 100).toFixed(1);
+  const progress = (getProgress(day, totalDays) * 100).toFixed(1);
 
   console.log("=".repeat(72));
   console.log(`Day ${day}/${totalDays} (${progress}% progress)`);

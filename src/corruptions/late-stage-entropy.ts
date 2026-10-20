@@ -38,14 +38,14 @@ export function lateStageEntropy(
       continue;
     }
 
-    // Skip empty lines and horizontal rules
+    // Skip empty lines and horizontal rules (later checks rely on this)
     if (line.trim() === "" || line.trim() === "---") {
       result.push(line);
       continue;
     }
 
     // Full line block replacement — scales aggressively from 70%
-    if (progress > 0.7 && line.trim().length > 0 && rng() < (progress - 0.7) * 0.6) {
+    if (progress > 0.7 && rng() < (progress - 0.7) * 0.6) {
       const blockLen = Math.max(3, Math.floor(line.trim().length * (0.5 + rng() * 0.5)));
       result.push(FULL_BLOCK.repeat(blockLen));
       continue;
@@ -54,7 +54,6 @@ export function lateStageEntropy(
     // Paragraph collapse — merge with next non-empty line
     if (
       progress > 0.75 &&
-      line.trim().length > 0 &&
       i + 2 < lines.length &&
       lines[i + 1].trim() === "" &&
       lines[i + 2].trim().length > 0 &&

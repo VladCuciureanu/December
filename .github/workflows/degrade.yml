@@ -24,37 +24,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check if reset day (Dec 31)
-        id: check-reset
+      - name: Degrade README (reset on Dec 31)
         run: |
+          reset=""
           if [ "$(date -u +%m-%d)" = "12-31" ]; then
-            echo "is_reset=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_reset=false" >> "$GITHUB_OUTPUT"
+            reset="--reset"
           fi
+          npm start --silent -- $reset > commit_msg.txt
 
-      - name: Reset README
-        if: steps.check-reset.outputs.is_reset == 'true'
-        run: |
-          npm start --silent -- --reset > commit_msg.txt
-
-      - name: Degrade README
-        if: steps.check-reset.outputs.is_reset != 'true'
-        run: |
-          npm start --silent > commit_msg.txt
-
-      - name: Commit reset
-        if: steps.check-reset.outputs.is_reset == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --staged --quiet && exit 0
-          git commit -F commit_msg.txt
-          git push
-
-      - name: Commit degradation
-        if: steps.check-reset.outputs.is_reset != 'true'
+      - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

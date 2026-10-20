@@ -1,23 +1,7 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { structuralDecay } from "../../src/corruptions/structural-decay.ts";
-import { degrade } from "../../src/degrade.ts";
 import { constRng, scriptedRng } from "../support/rng.ts";
-
-const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
-
-test("structural-decay: structure intact below 35% progress", () => {
-  // Day 80 ~ 22% progress
-  const result = degrade(ORIGINAL, 80, 365);
-  // All headings should still be present (text-decay may alter characters, but ## should remain)
-  const headings = result.readme.split("\n").filter((l) => l.match(/^#{1,6}\s/));
-  assert.strictEqual(
-    headings.length >= 4,
-    true,
-    "Should preserve heading structure at low progress",
-  );
-});
 
 test("structural-decay: inactive below 35% progress", () => {
   const input = "## Usage\n\n1. first\n- second";

@@ -1,27 +1,26 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { lateStageEntropy } from "../../src/corruptions/late-stage-entropy.ts";
-import { degrade } from "../../src/degrade.ts";
-import { constRng } from "../support/rng.ts";
+import { constRng, scriptedRng } from "../support/rng.ts";
 
-const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
-
-test("late-stage: no additional full blocks at low progress", () => {
-  // Day 50 ~ 13% progress — well below any block corruption
-  const result = degrade(ORIGINAL, 50, 365);
-  const filled = ORIGINAL.replace(/\{day\}/g, "50").replace(/\{total\}/g, "365");
-  // The original README contains █████ in the text content itself,
-  // so count occurrences — late-stage should not add more at low progress
-  const originalCount = (filled.match(/█/g) || []).length;
-  const resultCount = (result.readme.match(/█/g) || []).length;
-  assert.strictEqual(resultCount, originalCount, "No additional full blocks at 13% progress");
+test("late-stage: inactive below 65% progress", () => {
+  // rng 0 would trigger every corruption if the stage were active
+  assert.strictEqual(lateStageEntropy("a\n\nb", 0.64, constRng(0)), "a\n\nb");
 });
 
-test("late-stage: full block characters appear at high progress", () => {
-  // Day 320 ~ 88% progress
-  const result = degrade(ORIGINAL, 320, 365);
-  assert.ok(result.readme.includes("█"));
+test("late-stage: blocks out whole lines above 70% progress", () => {
+  // rng 0 keeps the minimum length: half of the 11 trimmed characters
+  assert.strictEqual(lateStageEntropy("hello world", 0.8, constRng(0)), "█████");
+});
+
+test("late-stage: collapses paragraphs above 75% progress", () => {
+  // 1: don't block out the line; 2: merge it with the next paragraph
+  assert.strictEqual(lateStageEntropy("aaa\n\nbbb", 0.9, scriptedRng([0.5, 0])), "aaa bbb");
+});
+
+test("late-stage: blocks out characters within a line, keeping spaces", () => {
+  // 1: corrupt the line; then one draw per non-space character
+  assert.strictEqual(lateStageEntropy("ab c", 0.7, scriptedRng([0, 0, 0.5, 0])), "█b █");
 });
 
 test("late-stage: leaves the title alone up to 95% progress", () => {
@@ -31,11 +30,4 @@ test("late-stage: leaves the title alone up to 95% progress", () => {
 
 test("late-stage: corrupts the title above 95% progress", () => {
   assert.strictEqual(lateStageEntropy("# Title\nbody", 1, constRng(0)), "# █████\n███");
-});
-
-test("late-stage: day 365 produces heavily corrupted output", () => {
-  const result = degrade(ORIGINAL, 365, 365);
-  // Count block characters
-  const blockCount = [...result.readme].filter((c) => c === "█").length;
-  assert.strictEqual(blockCount > 10, true, "Day 365 should have many block characters");
 });

@@ -3,9 +3,11 @@
  * zero-width character injection, unicode space substitution.
  *
  * Active from 0% progress onward (subtle at first).
+ *
+ * Note: link URLs are not skipped, so they start decaying here from ~2%
+ * progress, well before link-rot's 25% stage. Kept deliberately: skipping
+ * them would change the rng sequence and therefore every day's output.
  */
-
-import { registerCorruption } from "../pipeline.ts";
 
 // Latin → visually similar Unicode characters
 const HOMOGLYPHS: Record<string, string[]> = {
@@ -47,7 +49,7 @@ const UNICODE_SPACES = [
   "\u200A", // hair space
 ];
 
-function isMarkdownSyntax(char: string, prev: string, next: string): boolean {
+function isMarkdownSyntax(char: string): boolean {
   // Avoid corrupting markdown syntax characters
   return (
     char === "#" ||
@@ -66,7 +68,7 @@ function isMarkdownSyntax(char: string, prev: string, next: string): boolean {
   );
 }
 
-function corruptTextDecay(
+export function textDecay(
   text: string,
   progress: number,
   rng: () => number,
@@ -85,14 +87,9 @@ function corruptTextDecay(
     }
 
     let newLine = "";
-    const chars = [...line]; // handle unicode properly
 
-    for (let i = 0; i < chars.length; i++) {
-      const char = chars[i];
-      const prev = i > 0 ? chars[i - 1] : "";
-      const next = i < chars.length - 1 ? chars[i + 1] : "";
-
-      if (isMarkdownSyntax(char, prev, next)) {
+    for (const char of line) { // iterates code points, not UTF-16 units
+      if (isMarkdownSyntax(char)) {
         newLine += char;
         continue;
       }
@@ -137,5 +134,3 @@ function corruptTextDecay(
 
   return result.join("\n");
 }
-
-registerCorruption("text-decay", corruptTextDecay);

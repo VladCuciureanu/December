@@ -4,8 +4,6 @@
  * Active from ~25% progress onward.
  */
 
-import { registerCorruption } from "../pipeline.ts";
-
 // Markdown link pattern: [text](url)
 const LINK_REGEX = /\[([^\]]+)\]\(([^)]+)\)/g;
 
@@ -58,7 +56,7 @@ function corruptAnchorText(
   return words.join(" ");
 }
 
-function corruptLinkRot(
+export function linkRot(
   text: string,
   progress: number,
   rng: () => number,
@@ -80,5 +78,3 @@ function corruptLinkRot(
     return `[${newAnchor}](${newUrl})`;
   });
 }
-
-registerCorruption("link-rot", corruptLinkRot);

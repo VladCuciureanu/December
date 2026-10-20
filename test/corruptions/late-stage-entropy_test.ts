@@ -1,14 +1,14 @@
-import {
-  assertEquals,
-  assertStringIncludes,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { test } from "node:test";
 import { degrade } from "../../src/degrade.ts";
 
-const ORIGINAL = await Deno.readTextFile(
+const ORIGINAL = await readFile(
   new URL("../../src/README.original.md", import.meta.url),
+  "utf8",
 );
 
-Deno.test("late-stage: no additional full blocks at low progress", () => {
+test("late-stage: no additional full blocks at low progress", () => {
   // Day 50 ~ 13% progress — well below any block corruption
   const result = degrade(ORIGINAL, 50, 365);
   const filled = ORIGINAL.replace(/\{day\}/g, "50").replace(/\{total\}/g, "365");
@@ -16,32 +16,32 @@ Deno.test("late-stage: no additional full blocks at low progress", () => {
   // so count occurrences — late-stage should not add more at low progress
   const originalCount = (filled.match(/█/g) || []).length;
   const resultCount = (result.readme.match(/█/g) || []).length;
-  assertEquals(resultCount, originalCount, "No additional full blocks at 13% progress");
+  assert.strictEqual(resultCount, originalCount, "No additional full blocks at 13% progress");
 });
 
-Deno.test("late-stage: full block characters appear at high progress", () => {
+test("late-stage: full block characters appear at high progress", () => {
   // Day 320 ~ 88% progress
   const result = degrade(ORIGINAL, 320, 365);
-  assertStringIncludes(result.readme, "█");
+  assert.ok(result.readme.includes("█"));
 });
 
-Deno.test("late-stage: title line exists at 88% progress", () => {
+test("late-stage: title line exists at 88% progress", () => {
   const result = degrade(ORIGINAL, 320, 365);
   const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assertEquals(titleLine !== undefined, true, "Title line should still start with '# '");
+  assert.strictEqual(titleLine !== undefined, true, "Title line should still start with '# '");
 });
 
-Deno.test("late-stage: title may corrupt at >95% progress", () => {
+test("late-stage: title may corrupt at >95% progress", () => {
   // Day 360 ~ 98.6% progress
   const result = degrade(ORIGINAL, 360, 365);
   // Title line should still exist but may have block chars
   const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assertEquals(titleLine !== undefined, true, "Title line should still exist");
+  assert.strictEqual(titleLine !== undefined, true, "Title line should still exist");
 });
 
-Deno.test("late-stage: day 365 produces heavily corrupted output", () => {
+test("late-stage: day 365 produces heavily corrupted output", () => {
   const result = degrade(ORIGINAL, 365, 365);
   // Count block characters
   const blockCount = [...result.readme].filter((c) => c === "█").length;
-  assertEquals(blockCount > 10, true, "Day 365 should have many block characters");
+  assert.strictEqual(blockCount > 10, true, "Day 365 should have many block characters");
 });

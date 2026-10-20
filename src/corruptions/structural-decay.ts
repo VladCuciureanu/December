@@ -5,8 +5,6 @@
  * Active from ~35% progress onward.
  */
 
-import { registerCorruption } from "../pipeline.ts";
-
 function corruptHeadings(
   line: string,
   progress: number,
@@ -67,7 +65,7 @@ function corruptListItems(
   return line;
 }
 
-function corruptStructuralDecay(
+export function structuralDecay(
   text: string,
   progress: number,
   rng: () => number,
@@ -124,5 +122,3 @@ function corruptStructuralDecay(
 
   return result.join("\n");
 }
-
-registerCorruption("structural-decay", corruptStructuralDecay);

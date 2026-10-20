@@ -1,0 +1,18 @@
+{
+  "name": "december",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/degrade.ts",
+    "validate": "node src/validate.ts",
+    "test": "node --test \"test/**/*_test.ts\"",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "^7.0.2"
+  }
+}

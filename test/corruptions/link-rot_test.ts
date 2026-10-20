@@ -1,40 +1,40 @@
-import {
-  assertEquals,
-  assertNotEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { degrade } from "../../src/degrade.ts";
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { linkRot } from "../../src/corruptions/link-rot.ts";
+import { constRng, scriptedRng } from "../support/rng.ts";
 
-const ORIGINAL = await Deno.readTextFile(
-  new URL("../../src/README.original.md", import.meta.url),
-);
+const LINK = "[a](https://example.com/path)";
 
-Deno.test("link-rot: links intact below 25% progress", () => {
-  // Day 50 ~ 13% progress
-  const result = degrade(ORIGINAL, 50, 365);
-  // Original URL should still be present (only text-decay homoglyphs may alter it slightly)
-  assertNotEquals(result.readme.length, 0);
+test("link-rot: inactive below 25% progress", () => {
+  // rng 0 would trigger every corruption if the stage were active
+  assert.strictEqual(linkRot(LINK, 0.24, constRng(0)), LINK);
 });
 
-Deno.test("link-rot: URLs are corrupted at moderate progress", () => {
-  // Day 200 ~ 55% progress — link rot should be active
-  const result = degrade(ORIGINAL, 200, 365);
-  // The original has "https://github.com/vladcuciureanu/december"
-  // At 55% progress, some URLs should be corrupted
-  const originalUrl = "https://github.com/vladcuciureanu/december";
-  // Check that at least one link's URL has changed
-  const urlMatches = [...result.readme.matchAll(/\]\(([^)]+)\)/g)];
-  const allOriginal = urlMatches.every((m) =>
-    ORIGINAL.includes(m[1])
+test("link-rot: corrupts URLs after the protocol prefix", () => {
+  // 1: corrupt this URL; 2: pick index 10 of 24; 3: swap with the next char;
+  // 4: leave anchor text alone
+  const rng = scriptedRng([0, 10.5 / 24, 0, 0.99]);
+  assert.strictEqual(linkRot(LINK, 0.5, rng), "[a](https://exmaple.com/path)");
+});
+
+test("link-rot: never touches the first 8 URL characters", () => {
+  // index 0 falls inside "https://", so the corruption is skipped
+  const rng = scriptedRng([0, 0, 0.99]);
+  assert.strictEqual(linkRot(LINK, 0.5, rng), LINK);
+});
+
+test("link-rot: shuffles anchor text above 40% progress", () => {
+  // 1: keep URL; 2: corrupt anchor; 3: swap word 1; 4: with word 0
+  const rng = scriptedRng([0.99, 0, 0, 0]);
+  assert.strictEqual(
+    linkRot("[one two](https://x.io)", 0.8, rng),
+    "[two one](https://x.io)",
   );
-  // It's possible (but unlikely with RNG) that all URLs survived — we just verify it ran
-  assertEquals(urlMatches.length > 0, true, "Should still have links");
 });
 
-Deno.test("link-rot: links may break entirely at very high progress", () => {
-  // Day 340 ~ 93% progress
-  const result = degrade(ORIGINAL, 340, 365);
-  // At this progress, some links may have been reduced to just anchor text
-  // We verify the output is valid and has content
-  assertEquals(typeof result.readme, "string");
-  assertEquals(result.readme.length > 0, true);
+test("link-rot: breaks links down to anchor text at very high progress", () => {
+  assert.strictEqual(
+    linkRot("see [docs](https://x.io) and [more](https://y.io)", 0.95, constRng(0)),
+    "see docs and more",
+  );
 });

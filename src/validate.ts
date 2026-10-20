@@ -3,10 +3,13 @@
  * and prints the output for manual review.
  */
 
-import { degrade } from "./degrade.ts";
+import { readFile } from "node:fs/promises";
 
-const original = await Deno.readTextFile(
+import { degrade, getProgress } from "./degrade.ts";
+
+const original = await readFile(
   new URL("./README.original.md", import.meta.url),
+  "utf8",
 );
 
 const testDays = [1, 30, 90, 180, 270, 330, 355, 364, 365];
@@ -14,7 +17,7 @@ const totalDays = 365;
 
 for (const day of testDays) {
   const result = degrade(original, day, totalDays);
-  const progress = ((day - 1) / (totalDays - 1) * 100).toFixed(1);
+  const progress = (getProgress(day, totalDays) * 100).toFixed(1);
 
   console.log("=".repeat(72));
   console.log(`Day ${day}/${totalDays} (${progress}% progress)`);

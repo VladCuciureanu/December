@@ -5,14 +5,29 @@
  * and returns a corrupted version at the appropriate decay level.
  */
 
-// Import corruption modules (order matters — registers into the pipeline)
-import "./corruptions/text-decay.ts";
-import "./corruptions/fading.ts";
-import "./corruptions/link-rot.ts";
-import "./corruptions/structural-decay.ts";
-import "./corruptions/late-stage-entropy.ts";
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-import { runPipeline } from "./pipeline.ts";
+import { fading } from "./corruptions/fading.ts";
+import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
+import { linkRot } from "./corruptions/link-rot.ts";
+import { structuralDecay } from "./corruptions/structural-decay.ts";
+import { textDecay } from "./corruptions/text-decay.ts";
+import { type CorruptionFn, runPipeline } from "./pipeline.ts";
+
+/**
+ * Corruption stages, applied in this order. They share one seeded rng, so
+ * reordering them changes every day's output.
+ */
+export const PIPELINE: readonly CorruptionFn[] = [
+  textDecay,
+  fading,
+  linkRot,
+  structuralDecay,
+  lateStageEntropy,
+];
 
 // --- Seeded RNG (Mulberry32) ---
 
@@ -35,6 +50,32 @@ export function getProgress(day: number, totalDays: number): number {
   return Math.max(0, Math.min(1, (day - 1) / (totalDays - 1)));
 }
 
+/** Replace the {day} and {total} template placeholders. */
+export function fillPlaceholders(
+  text: string,
+  day: number,
+  totalDays: number,
+): string {
+  return text
+    .replace(/\{day\}/g, String(day))
+    .replace(/\{total\}/g, String(totalDays));
+}
+
+/**
+ * Dec 31 reset: the pristine README with placeholders filled in and no
+ * corruption applied.
+ */
+export function reset(
+  original: string,
+  day: number,
+  totalDays: number,
+): DegradeResult {
+  return {
+    readme: fillPlaceholders(original, day, totalDays),
+    commitMessage: `update(${day}/${totalDays}): Reset. See you next year.`,
+  };
+}
+
 export function degrade(
   original: string,
   day: number,
@@ -43,13 +84,10 @@ export function degrade(
   const progress = getProgress(day, totalDays);
   const rng = mulberry32(day);
 
-  // Replace {day} and {total} placeholders
-  let text = original
-    .replace(/\{day\}/g, String(day))
-    .replace(/\{total\}/g, String(totalDays));
+  let text = fillPlaceholders(original, day, totalDays);
 
   // Apply corruption pipeline
-  text = runPipeline(text, progress, rng);
+  text = runPipeline(PIPELINE, text, progress, rng);
 
   const commitMessage = buildCommitMessage(day, totalDays, progress, rng);
 
@@ -112,27 +150,34 @@ function buildCommitMessage(
   return `update(${day}/${totalDays}): ${message}`;
 }
 
+/** 1-based day of the year for `date`'s local calendar date. */
+export function dayOfYear(date: Date): number {
+  // Compare calendar dates as UTC midnights so DST shifts can't skew the count
+  const year = date.getFullYear();
+  const today = Date.UTC(year, date.getMonth(), date.getDate());
+  return (today - Date.UTC(year, 0, 1)) / (1000 * 60 * 60 * 24) + 1;
+}
+
 // --- CLI entrypoint ---
 
-if (import.meta.main) {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const originalPath = new URL("./README.original.md", import.meta.url);
-  const original = await Deno.readTextFile(originalPath);
+  const original = await readFile(originalPath, "utf8");
 
   const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const day =
-    Math.floor(
-      (now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 1;
+  const day = dayOfYear(now);
   const isLeapYear =
     now.getFullYear() % 4 === 0 &&
     (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
   const totalDays = isLeapYear ? 366 : 365;
 
-  const result = degrade(original, day, totalDays);
+  // The workflow passes --reset on Dec 31 to restore the pristine README
+  const result = process.argv.includes("--reset")
+    ? reset(original, day, totalDays)
+    : degrade(original, day, totalDays);
 
   const outPath = new URL("../README.md", import.meta.url);
-  await Deno.writeTextFile(outPath, result.readme);
+  await writeFile(outPath, result.readme);
 
   // Output commit message to stdout for the CI action to capture
   console.log(result.commitMessage);

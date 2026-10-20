@@ -88,8 +88,11 @@ export function structuralDecay(text: string, progress: number, rng: () => numbe
     }
 
     if (i === titleLineIdx) {
-      // Still draw from the rng as if the title were corrupted, so every
-      // other line of every day decays exactly as it did before.
+      // Still make the heading draws an unprotected title would. The title
+      // skips the line-break draws, though, which an unprotected title
+      // longer than 30 characters (after earlier stages) would also make,
+      // so the rng stream only matches the unprotected one for titles of 30
+      // characters or fewer.
       corruptHeadings(line, progress, rng);
       result.push(line);
       continue;

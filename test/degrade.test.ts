@@ -105,14 +105,6 @@ test("later days have more corruption than earlier days", () => {
   );
 });
 
-// --- degrade: title line exists at moderate progress ---
-
-test("title line still starts with '# ' at moderate progress", () => {
-  const result = degrade(ORIGINAL, 180, 365);
-  const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assert.strictEqual(titleLine !== undefined, true, "Title line should still exist");
-});
-
 // --- degrade: structure preserved at low progress ---
 
 test("headings are preserved at low progress", () => {

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { structuralDecay } from "../../src/corruptions/structural-decay.ts";
 import { degrade } from "../../src/degrade.ts";
-import { constRng } from "../support/rng.ts";
+import { constRng, scriptedRng } from "../support/rng.ts";
 
 const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
 
@@ -49,4 +49,21 @@ test("structural-decay: drops blank lines and splits long lines", () => {
     structuralDecay(`a\n\n${long}`, 0.5, constRng(0)),
     `a\n${"x".repeat(5)}\n${"x".repeat(35)}`,
   );
+});
+
+test("structural-decay: never touches the title, only other headings", () => {
+  // rng 0 demotes every heading it is allowed to
+  assert.strictEqual(
+    structuralDecay("# Title\n## Section", 0.9, constRng(0)),
+    "# Title\n### Section",
+  );
+});
+
+test("structural-decay: the protected title draws from the rng like any heading", () => {
+  // Each heading draws: corrupt it?, demote?, by how much. The title still
+  // makes its three draws, so the next heading decays exactly as it did
+  // before the title was protected.
+  const draws = [0.1, 0.4, 0.9, 0.1, 0.4, 0];
+  assert.strictEqual(structuralDecay("# T\n## S", 0.9, scriptedRng(draws)), "# T\n### S");
+  assert.strictEqual(structuralDecay("## T\n## S", 0.9, scriptedRng(draws)), "##### T\n### S");
 });

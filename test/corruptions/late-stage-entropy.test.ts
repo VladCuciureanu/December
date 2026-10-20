@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
+import { lateStageEntropy } from "../../src/corruptions/late-stage-entropy.ts";
 import { degrade } from "../../src/degrade.ts";
+import { constRng } from "../support/rng.ts";
 
 const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
 
@@ -22,18 +24,13 @@ test("late-stage: full block characters appear at high progress", () => {
   assert.ok(result.readme.includes("█"));
 });
 
-test("late-stage: title line exists at 88% progress", () => {
-  const result = degrade(ORIGINAL, 320, 365);
-  const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assert.strictEqual(titleLine !== undefined, true, "Title line should still start with '# '");
+test("late-stage: leaves the title alone up to 95% progress", () => {
+  // rng 0 blocks out every other line
+  assert.strictEqual(lateStageEntropy("# Title\nbody", 0.95, constRng(0)), "# Title\n███");
 });
 
-test("late-stage: title may corrupt at >95% progress", () => {
-  // Day 360 ~ 98.6% progress
-  const result = degrade(ORIGINAL, 360, 365);
-  // Title line should still exist but may have block chars
-  const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assert.strictEqual(titleLine !== undefined, true, "Title line should still exist");
+test("late-stage: corrupts the title above 95% progress", () => {
+  assert.strictEqual(lateStageEntropy("# Title\nbody", 1, constRng(0)), "# █████\n███");
 });
 
 test("late-stage: day 365 produces heavily corrupted output", () => {

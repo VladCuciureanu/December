@@ -2,7 +2,8 @@
  * Structural Decay — Heading corruption, list decay, code fence removal,
  * line break mutations.
  *
- * Active from ~35% progress onward.
+ * Active from ~35% progress onward. The title (the first "# " line) is left
+ * alone: it is the last thing to go, and only late-stage entropy touches it.
  */
 
 function corruptHeadings(line: string, progress: number, rng: () => number): string {
@@ -61,6 +62,7 @@ export function structuralDecay(text: string, progress: number, rng: () => numbe
 
   const lines = text.split("\n");
   const result: string[] = [];
+  const titleLineIdx = lines.findIndex((l) => l.startsWith("# "));
   let inCodeBlock = false;
 
   for (let i = 0; i < lines.length; i++) {
@@ -79,6 +81,14 @@ export function structuralDecay(text: string, progress: number, rng: () => numbe
     }
 
     if (inCodeBlock) {
+      result.push(line);
+      continue;
+    }
+
+    if (i === titleLineIdx) {
+      // Still draw from the rng as if the title were corrupted, so every
+      // other line of every day decays exactly as it did before.
+      corruptHeadings(line, progress, rng);
       result.push(line);
       continue;
     }

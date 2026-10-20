@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { test } from "node:test";
-import { dayOfYear, daysInYear, degrade, getProgress, reset } from "../src/degrade.ts";
+import { fading } from "../src/corruptions/fading.ts";
+import { lateStageEntropy } from "../src/corruptions/late-stage-entropy.ts";
+import { linkRot } from "../src/corruptions/link-rot.ts";
+import { structuralDecay } from "../src/corruptions/structural-decay.ts";
+import { textDecay } from "../src/corruptions/text-decay.ts";
+import { dayOfYear, daysInYear, degrade, getProgress, PIPELINE, reset } from "../src/degrade.ts";
 
 const ORIGINAL = await readFile(new URL("../src/README.original.md", import.meta.url), "utf8");
 
@@ -31,6 +36,12 @@ test("getProgress clamps above 1", () => {
 
 test("getProgress handles leap year", () => {
   assert.strictEqual(getProgress(366, 366), 1);
+});
+
+// --- degrade: pipeline ---
+
+test("degrade pipeline runs the stages in the documented order", () => {
+  assert.deepStrictEqual(PIPELINE, [textDecay, fading, linkRot, structuralDecay, lateStageEntropy]);
 });
 
 // --- degrade: determinism ---

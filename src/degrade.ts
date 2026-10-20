@@ -14,7 +14,8 @@ import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
 import { linkRot } from "./corruptions/link-rot.ts";
 import { structuralDecay } from "./corruptions/structural-decay.ts";
 import { textDecay } from "./corruptions/text-decay.ts";
-import { type CorruptionFn, runPipeline } from "./pipeline.ts";
+
+type CorruptionFn = (text: string, progress: number, rng: () => number) => string;
 
 /**
  * Corruption stages, applied in this order. They share one seeded rng, so
@@ -71,8 +72,9 @@ export function degrade(original: string, day: number, totalDays: number): Degra
 
   let text = fillPlaceholders(original, day, totalDays);
 
-  // Apply corruption pipeline
-  text = runPipeline(PIPELINE, text, progress, rng);
+  for (const corrupt of PIPELINE) {
+    text = corrupt(text, progress, rng);
+  }
 
   const commitMessage = buildCommitMessage(day, totalDays, progress, rng);
 

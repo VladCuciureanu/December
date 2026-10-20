@@ -7,13 +7,15 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import process from "node:process";
+import { parseArgs } from "node:util";
 
 import { fading } from "./corruptions/fading.ts";
 import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
 import { linkRot } from "./corruptions/link-rot.ts";
 import { structuralDecay } from "./corruptions/structural-decay.ts";
 import { textDecay } from "./corruptions/text-decay.ts";
-import { type CorruptionFn, runPipeline } from "./pipeline.ts";
+
+type CorruptionFn = (text: string, progress: number, rng: () => number) => string;
 
 /**
  * Corruption stages, applied in this order. They share one seeded rng, so
@@ -49,7 +51,7 @@ export function getProgress(day: number, totalDays: number): number {
 }
 
 /** Replace the {day} and {total} template placeholders. */
-export function fillPlaceholders(text: string, day: number, totalDays: number): string {
+function fillPlaceholders(text: string, day: number, totalDays: number): string {
   return text.replace(/\{day\}/g, String(day)).replace(/\{total\}/g, String(totalDays));
 }
 
@@ -70,8 +72,9 @@ export function degrade(original: string, day: number, totalDays: number): Degra
 
   let text = fillPlaceholders(original, day, totalDays);
 
-  // Apply corruption pipeline
-  text = runPipeline(PIPELINE, text, progress, rng);
+  for (const corrupt of PIPELINE) {
+    text = corrupt(text, progress, rng);
+  }
 
   const commitMessage = buildCommitMessage(day, totalDays, progress, rng);
 
@@ -130,34 +133,73 @@ function buildCommitMessage(
   return `update(${day}/${totalDays}): ${message}`;
 }
 
-/** 1-based day of the year for `date`'s local calendar date. */
+/**
+ * 1-based day of the year for `date`'s UTC calendar date. The workflow
+ * decides the Dec 31 reset by UTC date too, so the two always agree.
+ */
 export function dayOfYear(date: Date): number {
-  // Compare calendar dates as UTC midnights so DST shifts can't skew the count
-  const year = date.getFullYear();
-  const today = Date.UTC(year, date.getMonth(), date.getDate());
+  const year = date.getUTCFullYear();
+  const today = Date.UTC(year, date.getUTCMonth(), date.getUTCDate());
   return (today - Date.UTC(year, 0, 1)) / (1000 * 60 * 60 * 24) + 1;
+}
+
+/** Number of days in `year`: 366 in leap years, otherwise 365. */
+export function daysInYear(year: number): number {
+  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return isLeapYear ? 366 : 365;
 }
 
 // --- CLI entrypoint ---
 
-if (import.meta.main) {
+const USAGE = `Usage: node src/degrade.ts [--reset]   (or: npm start -- [--reset])
+
+Write README.md for today's UTC date, degraded from src/README.original.md, and print
+the commit message to stdout.
+
+Options:
+  --reset     write the pristine README.md instead (the workflow passes this on Dec 31)
+  -h, --help  print this help and exit
+
+Exits 2 on an unknown option or argument.`;
+
+async function main(args: string[]): Promise<number> {
+  let values: { reset?: boolean; help?: boolean };
+  try {
+    ({ values } = parseArgs({
+      args,
+      options: { reset: { type: "boolean" }, help: { type: "boolean", short: "h" } },
+      strict: true,
+    }));
+  } catch (err) {
+    // parseArgs messages can run on with hints; keep the first sentence
+    const reason = err instanceof Error ? err.message.split(". ")[0] : String(err);
+    console.error(`degrade: ${reason} (see --help)`);
+    return 2;
+  }
+
+  if (values.help) {
+    console.log(USAGE);
+    return 0;
+  }
+
   const originalPath = new URL("./README.original.md", import.meta.url);
   const original = await readFile(originalPath, "utf8");
 
   const now = new Date();
   const day = dayOfYear(now);
-  const isLeapYear =
-    now.getFullYear() % 4 === 0 && (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
-  const totalDays = isLeapYear ? 366 : 365;
+  const totalDays = daysInYear(now.getUTCFullYear());
 
   // The workflow passes --reset on Dec 31 to restore the pristine README
-  const result = process.argv.includes("--reset")
-    ? reset(original, day, totalDays)
-    : degrade(original, day, totalDays);
+  const result = values.reset ? reset(original, day, totalDays) : degrade(original, day, totalDays);
 
   const outPath = new URL("../README.md", import.meta.url);
   await writeFile(outPath, result.readme);
 
   // Output commit message to stdout for the CI action to capture
   console.log(result.commitMessage);
+  return 0;
+}
+
+if (import.meta.main) {
+  process.exitCode = await main(process.argv.slice(2));
 }

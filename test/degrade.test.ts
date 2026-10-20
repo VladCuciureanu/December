@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { test } from "node:test";
-import { dayOfYear, degrade, getProgress, reset } from "../src/degrade.ts";
+import { fading } from "../src/corruptions/fading.ts";
+import { lateStageEntropy } from "../src/corruptions/late-stage-entropy.ts";
+import { linkRot } from "../src/corruptions/link-rot.ts";
+import { structuralDecay } from "../src/corruptions/structural-decay.ts";
+import { textDecay } from "../src/corruptions/text-decay.ts";
+import { dayOfYear, daysInYear, degrade, getProgress, PIPELINE, reset } from "../src/degrade.ts";
 
 const ORIGINAL = await readFile(new URL("../src/README.original.md", import.meta.url), "utf8");
 
@@ -31,6 +36,12 @@ test("getProgress clamps above 1", () => {
 
 test("getProgress handles leap year", () => {
   assert.strictEqual(getProgress(366, 366), 1);
+});
+
+// --- degrade: pipeline ---
+
+test("degrade pipeline runs the stages in the documented order", () => {
+  assert.deepStrictEqual(PIPELINE, [textDecay, fading, linkRot, structuralDecay, lateStageEntropy]);
 });
 
 // --- degrade: determinism ---
@@ -105,14 +116,6 @@ test("later days have more corruption than earlier days", () => {
   );
 });
 
-// --- degrade: title line exists at moderate progress ---
-
-test("title line still starts with '# ' at moderate progress", () => {
-  const result = degrade(ORIGINAL, 180, 365);
-  const titleLine = result.readme.split("\n").find((l) => l.startsWith("# "));
-  assert.strictEqual(titleLine !== undefined, true, "Title line should still exist");
-});
-
 // --- degrade: structure preserved at low progress ---
 
 test("headings are preserved at low progress", () => {
@@ -183,22 +186,48 @@ test("Dec 31 reset in a leap year uses day 366", () => {
 // --- dayOfYear ---
 
 test("dayOfYear counts from 1 on Jan 1", () => {
-  assert.strictEqual(dayOfYear(new Date(2026, 0, 1, 0, 0)), 1);
-  assert.strictEqual(dayOfYear(new Date(2026, 9, 20, 12, 0)), 293);
-  assert.strictEqual(dayOfYear(new Date(2026, 11, 31, 23, 59)), 365);
-  assert.strictEqual(dayOfYear(new Date(2028, 11, 31, 23, 59)), 366);
+  assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 0, 1, 0, 0))), 1);
+  assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 9, 20, 12, 0))), 293);
+  assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 11, 31, 23, 59))), 365);
+  assert.strictEqual(dayOfYear(new Date(Date.UTC(2028, 11, 31, 23, 59))), 366);
 });
 
-test("dayOfYear is not off by one after a DST change", () => {
-  // Run in a zone with DST. Just after local midnight on Mar 30 the clock is
-  // an hour ahead of Jan 1, so whole-day division of local times came up short.
+/** Run `fn` with the process time zone set to `tz`. */
+function inTimeZone(tz: string, fn: () => void): void {
   const savedTz = process.env.TZ;
-  process.env.TZ = "Europe/Bucharest";
+  process.env.TZ = tz;
   try {
-    assert.strictEqual(dayOfYear(new Date(2026, 2, 30, 0, 30)), 89);
-    assert.strictEqual(dayOfYear(new Date(2026, 9, 20, 0, 30)), 293);
+    fn();
   } finally {
     if (savedTz === undefined) delete process.env.TZ;
     else process.env.TZ = savedTz;
   }
+}
+
+test("dayOfYear uses the UTC date, not the local one", () => {
+  // Kiritimati is UTC+14: local time is already Jan 1 while UTC is Dec 31,
+  // the day the workflow (which checks `date -u`) runs the reset.
+  inTimeZone("Pacific/Kiritimati", () => {
+    assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 11, 31, 12, 0))), 365);
+  });
+  // Honolulu is UTC-10: local time is still Dec 31 while UTC is Jan 1.
+  inTimeZone("Pacific/Honolulu", () => {
+    assert.strictEqual(dayOfYear(new Date(Date.UTC(2027, 0, 1, 2, 0))), 1);
+  });
+});
+
+test("dayOfYear is not off by one after a DST change", () => {
+  inTimeZone("Europe/Bucharest", () => {
+    assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 2, 30, 0, 30))), 89);
+    assert.strictEqual(dayOfYear(new Date(Date.UTC(2026, 9, 20, 0, 30))), 293);
+  });
+});
+
+// --- daysInYear ---
+
+test("daysInYear follows the Gregorian leap-year rules", () => {
+  assert.strictEqual(daysInYear(2026), 365);
+  assert.strictEqual(daysInYear(2028), 366);
+  assert.strictEqual(daysInYear(2100), 365);
+  assert.strictEqual(daysInYear(2000), 366);
 });

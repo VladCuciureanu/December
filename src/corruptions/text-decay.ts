@@ -49,24 +49,8 @@ const UNICODE_SPACES = [
   "\u200A", // hair space
 ];
 
-function isMarkdownSyntax(char: string): boolean {
-  // Avoid corrupting markdown syntax characters
-  return (
-    char === "#" ||
-    char === "*" ||
-    char === "[" ||
-    char === "]" ||
-    char === "(" ||
-    char === ")" ||
-    char === "`" ||
-    char === "-" ||
-    char === ">" ||
-    char === "!" ||
-    char === "|" ||
-    char === "\n" ||
-    char === "\r"
-  );
-}
+// Markdown syntax characters, which are never corrupted
+const MARKDOWN_SYNTAX = new Set("#*[]()`->!|\n\r");
 
 export function textDecay(text: string, progress: number, rng: () => number): string {
   // Text decay starts from the very beginning but is subtle
@@ -86,7 +70,7 @@ export function textDecay(text: string, progress: number, rng: () => number): st
 
     for (const char of line) {
       // iterates code points, not UTF-16 units
-      if (isMarkdownSyntax(char)) {
+      if (MARKDOWN_SYNTAX.has(char)) {
         newLine += char;
         continue;
       }

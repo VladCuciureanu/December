@@ -15,14 +15,6 @@ test("text-decay: no corruption at day 1 (progress 0)", () => {
   assert.strictEqual(result.readme, expected);
 });
 
-test("text-decay: homoglyphs appear at moderate progress", () => {
-  // At day 100, progress ~27%, homoglyphs should be present
-  const result = degrade(ORIGINAL, 100, 365);
-  const filled = ORIGINAL.replace(/\{day\}/g, "100").replace(/\{total\}/g, "365");
-  // The output should differ from the placeholder-filled original
-  assert.notStrictEqual(result.readme, filled);
-});
-
 test("text-decay: inactive below 2% progress", () => {
   assert.strictEqual(textDecay("ace bed", 0.01, constRng(0)), "ace bed");
 });
@@ -53,12 +45,4 @@ test("text-decay: injects zero-width characters", () => {
 test("text-decay: also corrupts link URLs (before link-rot starts)", () => {
   // Known quirk: URLs are not skipped, so they decay from ~2% progress
   assert.strictEqual(textDecay("[b](x)", 0.5, constRng(0)), "[](х)");
-});
-
-test("text-decay: preserves markdown syntax characters", () => {
-  // Headings should still start with # at moderate progress
-  const result = degrade(ORIGINAL, 60, 365);
-  const lines = result.readme.split("\n");
-  const headingLines = lines.filter((l) => l.startsWith("#"));
-  assert.strictEqual(headingLines.length > 0, true, "Should still have heading lines");
 });

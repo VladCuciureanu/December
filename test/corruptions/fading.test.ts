@@ -1,33 +1,31 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { degrade } from "../../src/degrade.ts";
+import { fading } from "../../src/corruptions/fading.ts";
+import { constRng, scriptedRng } from "../support/rng.ts";
 
-const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
-
-test("fading: no fading effects below 20% progress", () => {
-  // Day 30 ~ 8% progress
-  const result = degrade(ORIGINAL, 30, 365);
-  assert.strictEqual(result.readme.includes("<sub>"), false, "No <sub> tags at low progress");
-  assert.strictEqual(result.readme.includes("~~"), false, "No strikethrough at low progress");
-  assert.strictEqual(result.readme.includes("░"), false, "No block chars at low progress");
+test("fading: inactive below 20% progress", () => {
+  // rng 0 would trigger every effect if the stage were active
+  assert.strictEqual(fading("one two", 0.19, constRng(0)), "one two");
 });
 
-test("fading: strikethrough or sub tags appear at moderate progress", () => {
-  // Day 200 ~ 55% progress — fading should be active
-  const result = degrade(ORIGINAL, 200, 365);
-  const hasFading =
-    result.readme.includes("<sub>") ||
-    result.readme.includes("~~") ||
-    result.readme.includes("░") ||
-    result.readme.includes("▒");
-  assert.strictEqual(hasFading, true, "Fading effects should appear at ~55% progress");
+test("fading: wraps words in <sub> from 20% progress", () => {
+  assert.strictEqual(fading("abc", 0.25, constRng(0)), "<sub>abc</sub>");
 });
 
-test("fading: block characters appear at high progress", () => {
-  // Day 300 ~ 82% progress
-  const result = degrade(ORIGINAL, 300, 365);
-  const hasBlocks =
-    result.readme.includes("░") || result.readme.includes("▒") || result.readme.includes("▓");
-  assert.strictEqual(hasBlocks, true, "Block characters should appear at high progress");
+test("fading: strikes words through from 30% progress", () => {
+  assert.strictEqual(fading("abc", 0.4, constRng(0)), "~~abc~~");
+});
+
+test("fading: replaces words with light blocks from 50% progress", () => {
+  // Up to 60% the lightest block is used without another draw
+  assert.strictEqual(fading("abc", 0.55, scriptedRng([0])), "░░░");
+});
+
+test("fading: uses darker blocks above 80% progress", () => {
+  // 1: replace the word; 2: pick the darkest of three blocks
+  assert.strictEqual(fading("abc", 0.9, scriptedRng([0, 0.9])), "▓▓▓");
+});
+
+test("fading: leaves code fences, rules and markdown-only tokens alone", () => {
+  assert.strictEqual(fading("```\n## abc\n---", 0.9, constRng(0)), "```\n## ░░░\n---");
 });

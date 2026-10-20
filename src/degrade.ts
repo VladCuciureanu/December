@@ -50,7 +50,7 @@ export function getProgress(day: number, totalDays: number): number {
 }
 
 /** Replace the {day} and {total} template placeholders. */
-export function fillPlaceholders(text: string, day: number, totalDays: number): string {
+function fillPlaceholders(text: string, day: number, totalDays: number): string {
   return text.replace(/\{day\}/g, String(day)).replace(/\{total\}/g, String(totalDays));
 }
 

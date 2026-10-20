@@ -6,9 +6,7 @@
  */
 
 import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import process from "node:process";
-import { fileURLToPath } from "node:url";
 
 import { fading } from "./corruptions/fading.ts";
 import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
@@ -160,7 +158,7 @@ export function dayOfYear(date: Date): number {
 
 // --- CLI entrypoint ---
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const originalPath = new URL("./README.original.md", import.meta.url);
   const original = await readFile(originalPath, "utf8");
 

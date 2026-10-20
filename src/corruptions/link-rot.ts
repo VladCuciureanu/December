@@ -52,7 +52,7 @@ function corruptAnchorText(text: string, progress: number, rng: () => number): s
 export function linkRot(text: string, progress: number, rng: () => number): string {
   if (progress < 0.25) return text;
 
-  return text.replace(LINK_REGEX, (match, anchorText, url) => {
+  return text.replace(LINK_REGEX, (_match, anchorText, url) => {
     // At very high progress, break the link entirely
     if (progress > 0.85 && rng() < (progress - 0.85) * 2) {
       return anchorText; // just the text, no link

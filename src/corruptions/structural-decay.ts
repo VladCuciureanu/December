@@ -49,7 +49,7 @@ function corruptListItems(line: string, progress: number, rng: () => number): st
     }
     // Corrupt indentation
     const indent = bulletMatch[1];
-    const newIndent = rng() < 0.5 ? indent + "  " : indent.slice(0, Math.max(0, indent.length - 2));
+    const newIndent = rng() < 0.5 ? `${indent}  ` : indent.slice(0, Math.max(0, indent.length - 2));
     return line.replace(/^\s*/, newIndent);
   }
 

@@ -56,7 +56,7 @@ export function lateStageEntropy(text: string, progress: number, rng: () => numb
       rng() < (progress - 0.75) * 0.3
     ) {
       // Merge this line with the one after the blank
-      result.push(line + " " + lines[i + 2].trim());
+      result.push(`${line} ${lines[i + 2].trim()}`);
       i += 2; // skip blank line and merged line
       continue;
     }

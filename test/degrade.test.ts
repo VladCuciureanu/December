@@ -90,59 +90,88 @@ test("day 1 commit message is uncorrupted", () => {
 
 // --- degrade: corruption increases with progress ---
 
-test("later days have more corruption than earlier days", () => {
-  const early = degrade(ORIGINAL, 30, 365);
-  const late = degrade(ORIGINAL, 300, 365);
-  const filled = ORIGINAL.replace(/\{day\}/g, "30").replace(/\{total\}/g, "365");
+/**
+ * A long original for checks that need corruption to show up somewhere:
+ * with this many words, lines and links, they hold whatever the rng draws.
+ */
+const FIXTURE = [
+  "# Fixture",
+  "",
+  ...Array.from({ length: 60 }, (_, i) =>
+    [
+      `## Section ${i}`,
+      "",
+      `Paragraph ${i} of day {day} of {total}, with a [link](https://example.com/${i}) in it.`,
+      "",
+      "- some list item with several words",
+      "",
+    ].join("\n"),
+  ),
+].join("\n");
 
-  // Measure similarity to original by counting matching characters
-  function similarity(a: string, b: string): number {
-    let matches = 0;
-    const len = Math.min(a.length, b.length);
-    for (let i = 0; i < len; i++) {
-      if (a[i] === b[i]) matches++;
-    }
-    return matches / Math.max(a.length, b.length);
+/** Fraction of positions where `a` and `b` hold the same UTF-16 unit. */
+function similarity(a: string, b: string): number {
+  let matches = 0;
+  const len = Math.min(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    if (a[i] === b[i]) matches++;
   }
+  return matches / Math.max(a.length, b.length);
+}
 
-  const earlySim = similarity(early.readme, filled);
-  const lateFilled = ORIGINAL.replace(/\{day\}/g, "300").replace(/\{total\}/g, "365");
-  const lateSim = similarity(late.readme, lateFilled);
+/** Average similarity of each day's output to that day's pristine text. */
+function meanSimilarity(days: number[]): number {
+  let total = 0;
+  for (const day of days) {
+    const pristine = reset(FIXTURE, day, 365).readme;
+    total += similarity(degrade(FIXTURE, day, 365).readme, pristine);
+  }
+  return total / days.length;
+}
 
-  assert.strictEqual(
-    earlySim > lateSim,
-    true,
-    "Early days should be more similar to original than late days",
-  );
+const range = (from: number, to: number) =>
+  Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+test("later days have more corruption than earlier days", () => {
+  const early = meanSimilarity(range(20, 40));
+  const late = meanSimilarity(range(290, 310));
+  assert.ok(early > late, `early ${early} should be above late ${late}`);
 });
 
 // --- degrade: structure preserved at low progress ---
 
-test("headings are preserved at low progress", () => {
-  const result = degrade(ORIGINAL, 30, 365);
-  assert.ok(result.readme.includes("## What is this?"));
-  assert.ok(result.readme.includes("## How it works"));
+test("headings keep their markers below 25% progress", () => {
+  // Below 25% only text decay runs, and it never touches "#" or ASCII spaces
+  const day = 30;
+  assert.ok(getProgress(day, 365) < 0.25);
+  const pristine = reset(ORIGINAL, day, 365).readme.split("\n");
+  const decayed = degrade(ORIGINAL, day, 365).readme.split("\n");
+  assert.strictEqual(decayed.length, pristine.length);
+  const headings = pristine.flatMap((line, i) => (line.match(/^#+ /) ? [i] : []));
+  assert.ok(headings.length > 1);
+  for (const i of headings) {
+    assert.strictEqual(decayed[i].match(/^#+ /)?.[0], pristine[i].match(/^#+ /)?.[0], decayed[i]);
+  }
 });
 
 // --- degrade: late-stage shows heavy corruption ---
 
 test("late-stage output contains block characters", () => {
-  const result = degrade(ORIGINAL, 350, 365);
-  const hasBlocks =
-    result.readme.includes("█") ||
-    result.readme.includes("░") ||
-    result.readme.includes("▒") ||
-    result.readme.includes("▓");
-  assert.strictEqual(hasBlocks, true, "Late-stage should contain block characters");
+  const result = degrade(FIXTURE, 350, 365);
+  assert.match(result.readme, /[█░▒▓]/, "Late-stage should contain block characters");
 });
 
 // --- degrade: commit message corrupts at high progress ---
 
-test("commit message is corrupted at high progress", () => {
-  const result = degrade(ORIGINAL, 350, 365);
-  // The base message is "Apply daily degradation"
-  // At high progress it should differ
-  assert.notStrictEqual(result.commitMessage, "update(350/365): Apply daily degradation");
+test("commit messages are corrupted at high progress", () => {
+  // Each late day corrupts every letter with a high chance, so nearly all
+  // of the last 30 days' messages differ from the base one
+  const days = range(336, 365);
+  const corrupted = days.filter(
+    (day) =>
+      degrade(FIXTURE, day, 365).commitMessage !== `update(${day}/365): Apply daily degradation`,
+  );
+  assert.ok(corrupted.length >= 27, `only ${corrupted.length} of ${days.length} corrupted`);
 });
 
 // --- degrade: all 365 days run without error ---

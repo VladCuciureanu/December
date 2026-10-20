@@ -68,11 +68,7 @@ function isMarkdownSyntax(char: string): boolean {
   );
 }
 
-export function textDecay(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+export function textDecay(text: string, progress: number, rng: () => number): string {
   // Text decay starts from the very beginning but is subtle
   if (progress < 0.02) return text;
 
@@ -88,7 +84,8 @@ export function textDecay(
 
     let newLine = "";
 
-    for (const char of line) { // iterates code points, not UTF-16 units
+    for (const char of line) {
+      // iterates code points, not UTF-16 units
       if (isMarkdownSyntax(char)) {
         newLine += char;
         continue;

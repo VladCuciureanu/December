@@ -15,11 +15,7 @@ function selectBlockChar(progress: number, rng: () => number): string {
   return BLOCK_CHARS_BY_SEVERITY[0];
 }
 
-export function fading(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+export function fading(text: string, progress: number, rng: () => number): string {
   if (progress < 0.2) return text;
 
   const lines = text.split("\n");
@@ -27,11 +23,7 @@ export function fading(
 
   for (const line of lines) {
     // Skip empty lines, code blocks, and pure markdown structure
-    if (
-      line.trim() === "" ||
-      line.startsWith("```") ||
-      line.trim() === "---"
-    ) {
+    if (line.trim() === "" || line.startsWith("```") || line.trim() === "---") {
       result.push(line);
       continue;
     }
@@ -42,17 +34,13 @@ export function fading(
 
     for (const word of words) {
       // Skip whitespace tokens and markdown-only tokens
-      if (word.match(/^\s+$/) || word.match(/^[#*\->\[\]()`|!]+$/)) {
+      if (word.match(/^\s+$/) || word.match(/^[#*\->[\]()`|!]+$/)) {
         newWords.push(word);
         continue;
       }
 
       // Block character replacement — starts at ~50% progress
-      if (
-        progress > 0.5 &&
-        word.length > 2 &&
-        rng() < (progress - 0.5) * 0.2
-      ) {
+      if (progress > 0.5 && word.length > 2 && rng() < (progress - 0.5) * 0.2) {
         const block = selectBlockChar(progress, rng);
         newWords.push(block.repeat(word.length));
         continue;

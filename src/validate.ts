@@ -7,10 +7,7 @@ import { readFile } from "node:fs/promises";
 
 import { degrade, getProgress } from "./degrade.ts";
 
-const original = await readFile(
-  new URL("./README.original.md", import.meta.url),
-  "utf8",
-);
+const original = await readFile(new URL("./README.original.md", import.meta.url), "utf8");
 
 const testDays = [1, 30, 90, 180, 270, 330, 355, 364, 365];
 const totalDays = 365;

@@ -5,17 +5,18 @@ import { structuralDecay } from "../../src/corruptions/structural-decay.ts";
 import { degrade } from "../../src/degrade.ts";
 import { constRng } from "../support/rng.ts";
 
-const ORIGINAL = await readFile(
-  new URL("../../src/README.original.md", import.meta.url),
-  "utf8",
-);
+const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
 
 test("structural-decay: structure intact below 35% progress", () => {
   // Day 80 ~ 22% progress
   const result = degrade(ORIGINAL, 80, 365);
   // All headings should still be present (text-decay may alter characters, but ## should remain)
   const headings = result.readme.split("\n").filter((l) => l.match(/^#{1,6}\s/));
-  assert.strictEqual(headings.length >= 4, true, "Should preserve heading structure at low progress");
+  assert.strictEqual(
+    headings.length >= 4,
+    true,
+    "Should preserve heading structure at low progress",
+  );
 });
 
 test("structural-decay: inactive below 35% progress", () => {
@@ -26,17 +27,11 @@ test("structural-decay: inactive below 35% progress", () => {
 test("structural-decay: demotes headings outside code blocks only", () => {
   // At 45% fences are never removed, so the fenced heading is protected
   const input = "```\n## inside\n```\n## outside";
-  assert.strictEqual(
-    structuralDecay(input, 0.45, constRng(0)),
-    "```\n## inside\n```\n### outside",
-  );
+  assert.strictEqual(structuralDecay(input, 0.45, constRng(0)), "```\n## inside\n```\n### outside");
 });
 
 test("structural-decay: strips list markers above 60% progress", () => {
-  assert.strictEqual(
-    structuralDecay("1. first\n- second", 0.7, constRng(0)),
-    "first\nsecond",
-  );
+  assert.strictEqual(structuralDecay("1. first\n- second", 0.7, constRng(0)), "first\nsecond");
 });
 
 test("structural-decay: renumbers list items below 60% progress", () => {

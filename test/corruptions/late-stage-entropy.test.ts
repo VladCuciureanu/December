@@ -3,10 +3,7 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { degrade } from "../../src/degrade.ts";
 
-const ORIGINAL = await readFile(
-  new URL("../../src/README.original.md", import.meta.url),
-  "utf8",
-);
+const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
 
 test("late-stage: no additional full blocks at low progress", () => {
   // Day 50 ~ 13% progress — well below any block corruption

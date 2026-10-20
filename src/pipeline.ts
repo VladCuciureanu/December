@@ -1,8 +1,4 @@
-export type CorruptionFn = (
-  text: string,
-  progress: number,
-  rng: () => number,
-) => string;
+export type CorruptionFn = (text: string, progress: number, rng: () => number) => string;
 
 /** Apply each corruption in order, threading the text and shared rng through. */
 export function runPipeline(

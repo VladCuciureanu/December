@@ -26,10 +26,7 @@ test("link-rot: never touches the first 8 URL characters", () => {
 test("link-rot: shuffles anchor text above 40% progress", () => {
   // 1: keep URL; 2: corrupt anchor; 3: swap word 1; 4: with word 0
   const rng = scriptedRng([0.99, 0, 0, 0]);
-  assert.strictEqual(
-    linkRot("[one two](https://x.io)", 0.8, rng),
-    "[two one](https://x.io)",
-  );
+  assert.strictEqual(linkRot("[one two](https://x.io)", 0.8, rng), "[two one](https://x.io)");
 });
 
 test("link-rot: breaks links down to anchor text at very high progress", () => {

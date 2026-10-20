@@ -6,11 +6,7 @@
 
 const FULL_BLOCK = "█";
 
-export function lateStageEntropy(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+export function lateStageEntropy(text: string, progress: number, rng: () => number): string {
   if (progress < 0.65) return text;
 
   const lines = text.split("\n");
@@ -60,7 +56,7 @@ export function lateStageEntropy(
       rng() < (progress - 0.75) * 0.3
     ) {
       // Merge this line with the one after the blank
-      result.push(line + " " + lines[i + 2].trim());
+      result.push(`${line} ${lines[i + 2].trim()}`);
       i += 2; // skip blank line and merged line
       continue;
     }

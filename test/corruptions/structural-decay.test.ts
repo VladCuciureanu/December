@@ -51,3 +51,11 @@ test("structural-decay: the protected title draws from the rng like any heading"
   assert.strictEqual(structuralDecay("# T\n## S", 0.9, scriptedRng(draws)), "# T\n### S");
   assert.strictEqual(structuralDecay("## T\n## S", 0.9, scriptedRng(draws)), "##### T\n### S");
 });
+
+test("structural-decay: recognises a title whose space text decay replaced", () => {
+  // Text decay can turn the space after "#" into a Unicode space
+  assert.strictEqual(
+    structuralDecay("#\u2009Title\n## Section", 0.9, constRng(0)),
+    "#\u2009Title\n### Section",
+  );
+});

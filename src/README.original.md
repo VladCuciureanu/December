@@ -54,6 +54,10 @@ npm run check          # lint, format check, typecheck and tests
 npm run format         # apply Biome formatting and safe fixes
 ```
 
+## License
+
+MIT. See [LICENSE](LICENSE).
+
 ---
 
 *Built with [Node.js](https://nodejs.org) and stubbornness.*

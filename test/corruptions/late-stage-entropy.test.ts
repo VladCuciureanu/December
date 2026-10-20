@@ -31,3 +31,12 @@ test("late-stage: leaves the title alone up to 95% progress", () => {
 test("late-stage: corrupts the title above 95% progress", () => {
   assert.strictEqual(lateStageEntropy("# Title\nbody", 1, constRng(0)), "# █████\n███");
 });
+
+test("late-stage: recognises a title whose space text decay replaced", () => {
+  // Text decay can turn the space after "#" into a Unicode space
+  assert.strictEqual(
+    lateStageEntropy("#\u2009Title\nbody", 0.95, constRng(0)),
+    "#\u2009Title\n███",
+  );
+  assert.strictEqual(lateStageEntropy("#\u2009Title\nbody", 1, constRng(0)), "#\u2009█████\n███");
+});

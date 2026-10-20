@@ -26,7 +26,7 @@ On December 31st the workflow writes the pristine text back and the cycle starts
 2. **Spring** — Characters start to drop. Zero-width characters slip in. Copy-paste begins to betray you.
 3. **Summer** — Fading sets in. Strikethrough creeps across phrases. Text dims.
 4. **Autumn** — Structure crumbles. Headings lose their markers. Links point nowhere.
-5. **Winter** — Entropy wins. Blocks of `█████` replace what was once readable. Only the title remains.
+5. **Winter** — Entropy wins. Blocks of `█████` replace what was once readable. Only the title remains, and even that starts to go.
 6. **December 31st** — Reset.
 
 ## Why?

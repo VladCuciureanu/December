@@ -6,11 +6,7 @@
 
 const FULL_BLOCK = "█";
 
-export function lateStageEntropy(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+export function lateStageEntropy(text: string, progress: number, rng: () => number): string {
   if (progress < 0.65) return text;
 
   const lines = text.split("\n");

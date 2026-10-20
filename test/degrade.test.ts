@@ -1,13 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { test } from "node:test";
 import process from "node:process";
+import { test } from "node:test";
 import { dayOfYear, degrade, getProgress, reset } from "../src/degrade.ts";
 
-const ORIGINAL = await readFile(
-  new URL("../src/README.original.md", import.meta.url),
-  "utf8",
-);
+const ORIGINAL = await readFile(new URL("../src/README.original.md", import.meta.url), "utf8");
 
 // --- getProgress ---
 
@@ -101,7 +98,11 @@ test("later days have more corruption than earlier days", () => {
   const lateFilled = ORIGINAL.replace(/\{day\}/g, "300").replace(/\{total\}/g, "365");
   const lateSim = similarity(late.readme, lateFilled);
 
-  assert.strictEqual(earlySim > lateSim, true, "Early days should be more similar to original than late days");
+  assert.strictEqual(
+    earlySim > lateSim,
+    true,
+    "Early days should be more similar to original than late days",
+  );
 });
 
 // --- degrade: title line exists at moderate progress ---
@@ -124,7 +125,8 @@ test("headings are preserved at low progress", () => {
 
 test("late-stage output contains block characters", () => {
   const result = degrade(ORIGINAL, 350, 365);
-  const hasBlocks = result.readme.includes("█") ||
+  const hasBlocks =
+    result.readme.includes("█") ||
     result.readme.includes("░") ||
     result.readme.includes("▒") ||
     result.readme.includes("▓");
@@ -137,10 +139,7 @@ test("commit message is corrupted at high progress", () => {
   const result = degrade(ORIGINAL, 350, 365);
   // The base message is "Apply daily degradation"
   // At high progress it should differ
-  assert.notStrictEqual(
-    result.commitMessage,
-    "update(350/365): Apply daily degradation",
-  );
+  assert.notStrictEqual(result.commitMessage, "update(350/365): Apply daily degradation");
 });
 
 // --- degrade: all 365 days run without error ---

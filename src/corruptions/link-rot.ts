@@ -11,10 +11,7 @@ function corruptUrl(url: string, progress: number, rng: () => number): string {
   if (rng() > (progress - 0.25) * 0.4) return url;
 
   const chars = [...url];
-  const numCorruptions = Math.max(
-    1,
-    Math.floor(chars.length * (progress - 0.25) * 0.3),
-  );
+  const numCorruptions = Math.max(1, Math.floor(chars.length * (progress - 0.25) * 0.3));
 
   for (let i = 0; i < numCorruptions; i++) {
     const idx = Math.floor(rng() * chars.length);
@@ -35,11 +32,7 @@ function corruptUrl(url: string, progress: number, rng: () => number): string {
   return chars.join("");
 }
 
-function corruptAnchorText(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+function corruptAnchorText(text: string, progress: number, rng: () => number): string {
   if (rng() > (progress - 0.4) * 0.3) return text;
 
   const words = text.split(" ");
@@ -56,11 +49,7 @@ function corruptAnchorText(
   return words.join(" ");
 }
 
-export function linkRot(
-  text: string,
-  progress: number,
-  rng: () => number,
-): string {
+export function linkRot(text: string, progress: number, rng: () => number): string {
   if (progress < 0.25) return text;
 
   return text.replace(LINK_REGEX, (match, anchorText, url) => {
@@ -70,10 +59,7 @@ export function linkRot(
     }
 
     const newUrl = corruptUrl(url, progress, rng);
-    const newAnchor =
-      progress > 0.4
-        ? corruptAnchorText(anchorText, progress, rng)
-        : anchorText;
+    const newAnchor = progress > 0.4 ? corruptAnchorText(anchorText, progress, rng) : anchorText;
 
     return `[${newAnchor}](${newUrl})`;
   });

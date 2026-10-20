@@ -49,36 +49,22 @@ export function getProgress(day: number, totalDays: number): number {
 }
 
 /** Replace the {day} and {total} template placeholders. */
-export function fillPlaceholders(
-  text: string,
-  day: number,
-  totalDays: number,
-): string {
-  return text
-    .replace(/\{day\}/g, String(day))
-    .replace(/\{total\}/g, String(totalDays));
+export function fillPlaceholders(text: string, day: number, totalDays: number): string {
+  return text.replace(/\{day\}/g, String(day)).replace(/\{total\}/g, String(totalDays));
 }
 
 /**
  * Dec 31 reset: the pristine README with placeholders filled in and no
  * corruption applied.
  */
-export function reset(
-  original: string,
-  day: number,
-  totalDays: number,
-): DegradeResult {
+export function reset(original: string, day: number, totalDays: number): DegradeResult {
   return {
     readme: fillPlaceholders(original, day, totalDays),
     commitMessage: `update(${day}/${totalDays}): Reset. See you next year.`,
   };
 }
 
-export function degrade(
-  original: string,
-  day: number,
-  totalDays: number,
-): DegradeResult {
+export function degrade(original: string, day: number, totalDays: number): DegradeResult {
   const progress = getProgress(day, totalDays);
   const rng = mulberry32(day);
 
@@ -94,11 +80,7 @@ export function degrade(
 
 const BASE_COMMIT_MESSAGE = "Apply daily degradation";
 
-function corruptCommitMessage(
-  message: string,
-  progress: number,
-  rng: () => number,
-): string {
+function corruptCommitMessage(message: string, progress: number, rng: () => number): string {
   if (progress < 0.1) return message;
 
   const chars = [...message];
@@ -165,8 +147,7 @@ if (import.meta.main) {
   const now = new Date();
   const day = dayOfYear(now);
   const isLeapYear =
-    now.getFullYear() % 4 === 0 &&
-    (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
+    now.getFullYear() % 4 === 0 && (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
   const totalDays = isLeapYear ? 366 : 365;
 
   // The workflow passes --reset on Dec 31 to restore the pristine README

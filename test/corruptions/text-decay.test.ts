@@ -5,10 +5,7 @@ import { textDecay } from "../../src/corruptions/text-decay.ts";
 import { degrade } from "../../src/degrade.ts";
 import { constRng, scriptedRng } from "../support/rng.ts";
 
-const ORIGINAL = await readFile(
-  new URL("../../src/README.original.md", import.meta.url),
-  "utf8",
-);
+const ORIGINAL = await readFile(new URL("../../src/README.original.md", import.meta.url), "utf8");
 
 // Text decay is the first corruption stage, active from ~2% progress onward.
 
@@ -35,10 +32,7 @@ test("text-decay: substitutes Cyrillic homoglyphs", () => {
 });
 
 test("text-decay: leaves code fence lines untouched", () => {
-  assert.strictEqual(
-    textDecay("```ace\nace\n```", 0.5, constRng(0)),
-    "```ace\nасе\n```",
-  );
+  assert.strictEqual(textDecay("```ace\nace\n```", 0.5, constRng(0)), "```ace\nасе\n```");
 });
 
 test("text-decay: keeps markdown syntax but corrupts text around it", () => {
@@ -53,10 +47,7 @@ test("text-decay: doubles letters", () => {
 
 test("text-decay: injects zero-width characters", () => {
   // 1: don't drop; 2: don't double; 3: inject; 4: pick U+200B
-  assert.strictEqual(
-    textDecay("b", 0.5, scriptedRng([0.5, 0.5, 0, 0])),
-    "b​",
-  );
+  assert.strictEqual(textDecay("b", 0.5, scriptedRng([0.5, 0.5, 0, 0])), "b​");
 });
 
 test("text-decay: also corrupts link URLs (before link-rot starts)", () => {

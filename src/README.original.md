@@ -49,8 +49,9 @@ npm run validate       # print the output for a sample of days, writes nothing
 
 ```sh
 npm install
-npm test
-npm run typecheck
+npm test               # run the tests in test/**/*.test.ts
+npm run check          # lint, format check, typecheck and tests
+npm run format         # apply Biome formatting and safe fixes
 ```
 
 ---

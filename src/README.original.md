@@ -35,4 +35,4 @@ Because all code decays. Dependencies go stale. Links break. Documentation drift
 
 ---
 
-*Built with [Deno](https://deno.land) and stubbornness.*
+*Built with [Node.js](https://nodejs.org) and stubbornness.*

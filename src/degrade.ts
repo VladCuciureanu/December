@@ -7,6 +7,7 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import process from "node:process";
+import { parseArgs } from "node:util";
 
 import { fading } from "./corruptions/fading.ts";
 import { lateStageEntropy } from "./corruptions/late-stage-entropy.ts";
@@ -140,7 +141,37 @@ export function dayOfYear(date: Date): number {
 
 // --- CLI entrypoint ---
 
-if (import.meta.main) {
+const USAGE = `Usage: node src/degrade.ts [--reset]   (or: npm start -- [--reset])
+
+Write README.md for today, degraded from src/README.original.md, and print
+the commit message to stdout.
+
+Options:
+  --reset     write the pristine README.md instead (the workflow passes this on Dec 31)
+  -h, --help  print this help and exit
+
+Exits 2 on an unknown option or argument.`;
+
+async function main(args: string[]): Promise<number> {
+  let values: { reset?: boolean; help?: boolean };
+  try {
+    ({ values } = parseArgs({
+      args,
+      options: { reset: { type: "boolean" }, help: { type: "boolean", short: "h" } },
+      strict: true,
+    }));
+  } catch (err) {
+    // parseArgs messages can run on with hints; keep the first sentence
+    const reason = err instanceof Error ? err.message.split(". ")[0] : String(err);
+    console.error(`degrade: ${reason} (see --help)`);
+    return 2;
+  }
+
+  if (values.help) {
+    console.log(USAGE);
+    return 0;
+  }
+
   const originalPath = new URL("./README.original.md", import.meta.url);
   const original = await readFile(originalPath, "utf8");
 
@@ -151,13 +182,16 @@ if (import.meta.main) {
   const totalDays = isLeapYear ? 366 : 365;
 
   // The workflow passes --reset on Dec 31 to restore the pristine README
-  const result = process.argv.includes("--reset")
-    ? reset(original, day, totalDays)
-    : degrade(original, day, totalDays);
+  const result = values.reset ? reset(original, day, totalDays) : degrade(original, day, totalDays);
 
   const outPath = new URL("../README.md", import.meta.url);
   await writeFile(outPath, result.readme);
 
   // Output commit message to stdout for the CI action to capture
   console.log(result.commitMessage);
+  return 0;
+}
+
+if (import.meta.main) {
+  process.exitCode = await main(process.argv.slice(2));
 }

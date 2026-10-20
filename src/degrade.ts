@@ -150,6 +150,14 @@ function buildCommitMessage(
   return `update(${day}/${totalDays}): ${message}`;
 }
 
+/** 1-based day of the year for `date`'s local calendar date. */
+export function dayOfYear(date: Date): number {
+  // Compare calendar dates as UTC midnights so DST shifts can't skew the count
+  const year = date.getFullYear();
+  const today = Date.UTC(year, date.getMonth(), date.getDate());
+  return (today - Date.UTC(year, 0, 1)) / (1000 * 60 * 60 * 24) + 1;
+}
+
 // --- CLI entrypoint ---
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -157,11 +165,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const original = await readFile(originalPath, "utf8");
 
   const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const day =
-    Math.floor(
-      (now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 1;
+  const day = dayOfYear(now);
   const isLeapYear =
     now.getFullYear() % 4 === 0 &&
     (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);

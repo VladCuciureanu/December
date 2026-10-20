@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { degrade, getProgress, reset } from "../src/degrade.ts";
+import process from "node:process";
+import { dayOfYear, degrade, getProgress, reset } from "../src/degrade.ts";
 
 const ORIGINAL = await readFile(
   new URL("../src/README.original.md", import.meta.url),
@@ -178,4 +179,27 @@ test("Dec 31 reset in a leap year uses day 366", () => {
   assert.doesNotMatch(result.readme, /\{[a-z]+\}/);
   assert.ok(result.readme.includes("day `366` of `366`"));
   assert.strictEqual(result.commitMessage, "update(366/366): Reset. See you next year.");
+});
+
+// --- dayOfYear ---
+
+test("dayOfYear counts from 1 on Jan 1", () => {
+  assert.strictEqual(dayOfYear(new Date(2026, 0, 1, 0, 0)), 1);
+  assert.strictEqual(dayOfYear(new Date(2026, 9, 20, 12, 0)), 293);
+  assert.strictEqual(dayOfYear(new Date(2026, 11, 31, 23, 59)), 365);
+  assert.strictEqual(dayOfYear(new Date(2028, 11, 31, 23, 59)), 366);
+});
+
+test("dayOfYear is not off by one after a DST change", () => {
+  // Run in a zone with DST. Just after local midnight on Mar 30 the clock is
+  // an hour ahead of Jan 1, so whole-day division of local times came up short.
+  const savedTz = process.env.TZ;
+  process.env.TZ = "Europe/Bucharest";
+  try {
+    assert.strictEqual(dayOfYear(new Date(2026, 2, 30, 0, 30)), 89);
+    assert.strictEqual(dayOfYear(new Date(2026, 9, 20, 0, 30)), 293);
+  } finally {
+    if (savedTz === undefined) delete process.env.TZ;
+    else process.env.TZ = savedTz;
+  }
 });

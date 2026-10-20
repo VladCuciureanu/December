@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node src/degrade.ts",
     "validate": "node src/validate.ts",
-    "test": "node --test \"test/**/*_test.ts\"",
+    "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc"
   },
   "devDependencies": {

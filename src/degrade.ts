@@ -131,19 +131,27 @@ function buildCommitMessage(
   return `update(${day}/${totalDays}): ${message}`;
 }
 
-/** 1-based day of the year for `date`'s local calendar date. */
+/**
+ * 1-based day of the year for `date`'s UTC calendar date. The workflow
+ * decides the Dec 31 reset by UTC date too, so the two always agree.
+ */
 export function dayOfYear(date: Date): number {
-  // Compare calendar dates as UTC midnights so DST shifts can't skew the count
-  const year = date.getFullYear();
-  const today = Date.UTC(year, date.getMonth(), date.getDate());
+  const year = date.getUTCFullYear();
+  const today = Date.UTC(year, date.getUTCMonth(), date.getUTCDate());
   return (today - Date.UTC(year, 0, 1)) / (1000 * 60 * 60 * 24) + 1;
+}
+
+/** Number of days in `year`: 366 in leap years, otherwise 365. */
+export function daysInYear(year: number): number {
+  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return isLeapYear ? 366 : 365;
 }
 
 // --- CLI entrypoint ---
 
 const USAGE = `Usage: node src/degrade.ts [--reset]   (or: npm start -- [--reset])
 
-Write README.md for today, degraded from src/README.original.md, and print
+Write README.md for today's UTC date, degraded from src/README.original.md, and print
 the commit message to stdout.
 
 Options:
@@ -177,9 +185,7 @@ async function main(args: string[]): Promise<number> {
 
   const now = new Date();
   const day = dayOfYear(now);
-  const isLeapYear =
-    now.getFullYear() % 4 === 0 && (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0);
-  const totalDays = isLeapYear ? 366 : 365;
+  const totalDays = daysInYear(now.getUTCFullYear());
 
   // The workflow passes --reset on Dec 31 to restore the pristine README
   const result = values.reset ? reset(original, day, totalDays) : degrade(original, day, totalDays);

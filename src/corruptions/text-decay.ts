@@ -3,6 +3,10 @@
  * zero-width character injection, unicode space substitution.
  *
  * Active from 0% progress onward (subtle at first).
+ *
+ * Note: link URLs are not skipped, so they start decaying here from ~2%
+ * progress, well before link-rot's 25% stage. Kept deliberately: skipping
+ * them would change the rng sequence and therefore every day's output.
  */
 
 // Latin → visually similar Unicode characters

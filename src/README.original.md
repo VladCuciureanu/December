@@ -57,3 +57,7 @@ npm run format         # apply Biome formatting and safe fixes
 ---
 
 *Built with [Node.js](https://nodejs.org) and stubbornness.*
+
+## License
+
+MIT. See [LICENSE](LICENSE).

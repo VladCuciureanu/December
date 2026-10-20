@@ -4,6 +4,8 @@
  * Active from ~65% progress onward. The title ("# December") is the last to go.
  */
 
+import { findTitleLine } from "./title.ts";
+
 const FULL_BLOCK = "█";
 
 export function lateStageEntropy(text: string, progress: number, rng: () => number): string {
@@ -11,7 +13,7 @@ export function lateStageEntropy(text: string, progress: number, rng: () => numb
 
   const lines = text.split("\n");
   const result: string[] = [];
-  const titleLineIdx = lines.findIndex((l) => l.startsWith("# "));
+  const titleLineIdx = findTitleLine(lines);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -20,14 +22,15 @@ export function lateStageEntropy(text: string, progress: number, rng: () => numb
     // Title corruption — only at very end (>95%)
     if (isTitle) {
       if (progress > 0.95 && rng() < (progress - 0.95) * 5) {
-        const titleChars = [...line];
-        const corrupted = titleChars
+        // Keep the "#" and the whitespace after it, whichever space it is
+        const prefix = line.slice(0, 2);
+        const corrupted = [...line.slice(2)]
           .map((ch) => {
             if (ch === "#" || ch === " ") return ch;
             return rng() < (progress - 0.95) * 8 ? FULL_BLOCK : ch;
           })
           .join("");
-        result.push(corrupted);
+        result.push(prefix + corrupted);
       } else {
         result.push(line);
       }

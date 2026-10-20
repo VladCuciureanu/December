@@ -157,6 +157,24 @@ test("degrade runs successfully for all 365 days", () => {
   }
 });
 
+// --- degrade: the title is the last thing to go ---
+
+test("the title keeps its level and its line on every day of the year", () => {
+  for (const totalDays of [365, 366]) {
+    for (let day = 1; day <= totalDays; day++) {
+      const title = degrade(ORIGINAL, day, totalDays).readme.split("\n")[0];
+      const at = `day ${day}/${totalDays}`;
+      // One "#" then whitespace, which text decay may turn into a Unicode space
+      assert.match(title, /^#\s/, at);
+      // The title is one word, so an ASCII space means a paragraph merged into it
+      assert.ok(!title.slice(2).includes(" "), `${at}: ${title}`);
+      if (getProgress(day, totalDays) <= 0.95) {
+        assert.ok(!title.includes("█"), `${at}: title blocked out before 95%`);
+      }
+    }
+  }
+});
+
 // --- degrade: leap year (366 days) ---
 
 test("degrade handles 366-day leap year", () => {
